@@ -11,12 +11,31 @@
 #define TRUE 1
 #define FALSE 0
 
-// 프로세스 구조체 선언
+
+// 프로세스 구조체 (random data 부여 필요)
 typedef struce _process {
 
-    char pid[]
+    char pid[ID_LEN];    // 프로세스 ID
+    int CPU_btime;       // 실행 시간
+    int I/O_btime;       // 입출력 시간
+    int arrival_time;    // 도착 시간
+    int priority;        // 우선 순위
+    int completed;       // 완료 상태 (TRUE 1 또는 FALSE 0)
 
+} Process;
+
+
+typedef int Quantum; // 시간 할당량 Quantum 키워드 사용 (이해 필요)
+
+
+// 프로세스 초기화 (p[]: 프로세스 구조체 배열, p_cnt: 프로세스 개수)
+void process_init(Process p[], int p_cnt) {
+
+    for (int i = 0; i < p_cnt; i++){
+
+        p[i].completed = FALSE;
+
+    }
 }
-
 
 #endif
