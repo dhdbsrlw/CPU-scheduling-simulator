@@ -4,7 +4,7 @@
 23-1 운영체제 텀프로젝트 (고려대학교 유헌창 교수님)
 
 Currently working -
-현재 작업중 (last updated: 23/05/08)
+현재 작업중 (last updated: 23/05/26)
 
 [ 파일 소개 ]
 - SimulatorFinal.c : 최종 파일 (단일 파일)
