@@ -10,7 +10,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <Process.h>
 
@@ -26,12 +25,23 @@ struct Process * process = (struct Process *)malloc(sizeof(struct Process) * p_c
 
 
 // 프로세스 환경 초기화 (랜덤 생성)
-process_init(process);
+for (int i = 0; i < len; i++){
 
+    process[i].p_id = (rand() % 9000) + 1000;        // 4자리 생성
+    process[i].CPU_burst_time = (rand() % 10) + 1;   // 최대 시간 10 (최소 설정 필요)
+    process[i].IO_burst_time = (rand() % 10) + 1;    // 최대 시간 10 (확률로 발생빈도 저하 필요)
 
+    if (i == 0) {
+        process[i].arrival_time = 0;
+    }
+    else {
+        process[i].arrival_time = (rand() % 11)};     // 최대 시간 10
+
+    process[i].priority = (rnad() % len) + 1;
+}
 
 
 free(process);
-
 return 0;
+
 }
