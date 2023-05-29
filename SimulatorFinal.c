@@ -3,34 +3,22 @@
  * CPU Scheduling Simulator                    *
  *                                             *
  * Worked by 2020120036 경영학과 오윤진         *
- * Last update: 23/05/26                       *
+ * Last update: 23/05/28                       *
  *                                             *
  *                                             *
- *                                             *
- * 수정/확인 필요한 사항                         *
- * 1. 간트차트 생성 함수 추가 
- * 2. 하나의 프로세스에서 I/O 발생 시, CPU idle 상태가 되는지 타 프로세스로 전환되는지 확인
- * 3. 잡큐, 레디큐, 웨이팅 큐 에서 중복되는 소스코드 정리 (디버깅 필요 시 각 큐의 print 함수 추가)
- * 4. 전역 변수 정리 (코드 곳곳에 퍼져 있어 다소 혼란)
- * 5. JQ Clone 의 역할 정확히 이해
- * 6. timeConsumed, amount, TIME_QUANTUM, time_quantum 변수에 대해 정확히 이해 
- * 7. RR 알고리즘 함수 검토 
- * 8. 시간이 된다면 소스코드에서 중복되는 부분 정리 (혹은 헤더파일로 모듈화)
- *                        
- * 
- * 
 ***********************************************/
-
+// 추가적인 함수 (extra credit) 구현, 코드 정리
 
 // Header declaration
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-// Policy
-#define MAX_TIME_UNIT 1000
+// Policy (arbitrary number)
+#define MAX_TIME_UNIT 1000         // 삭제 가능
 #define MAX_PROCESS_NUM 10
-#define MAX_ALGORITHM_NUM 10
+#define MAX_ALGORITHM_NUM 10       // 삭제 가능
+#define MAX_SWITCH_NUM 150 
 #define TIME_QUANTUM 2
 
 // Algorithm's Unique Number
@@ -83,34 +71,67 @@ typedef struct evaluation {
 }evaluation;
 typedef struct evaluation* evalPointer; 
 
-
 // Evaluation array
 evalPointer evals[MAX_ALGORITHM_NUM]; 
 
 // Current evaluation target algorithm
 int cur_eval_num = 0;   
 
-
 // Initiate evaluation array for all 
 void init_evals(){
 
 	cur_eval_num = 0;
-	int i;
-	for (i=0;i<MAX_ALGORITHM_NUM;i++) 
-		evals[i]=NULL; 
-}
+	for (int i=0; i < MAX_ALGORITHM_NUM; i++) 
+		evals[i] = NULL; 
 
+    // printf("init_evals complete\n"); // for debugging
+}
 
 // Clear evaluation array for all 
 void clear_evals() {
 
-	int i;
-	for( i=0;i<MAX_ALGORITHM_NUM;i++){
+	for (int i = 0; i < MAX_ALGORITHM_NUM; i++){
         // memory free
 		free(evals[i]);  
 		evals[i]=NULL;
 	}
 	cur_eval_num = 0;
+}
+
+
+// Switching Check (for drawing Gantt Chart)
+typedef struct switching {
+
+    int new_pid;
+    int switching_time;
+
+} switching; 
+typedef struct switching* switchPointer;
+
+
+// Switching Info array
+switchPointer switches[MAX_SWITCH_NUM]; // per each algorithm
+// switchPointer* switches_all[MAX_ALGORITHM_NUM]; // all algorithm
+
+int cur_switch_num = 0;
+
+// Initiate Switching Info array
+void init_switches(){
+
+	for (int i=0; i < MAX_SWITCH_NUM; i++) 
+		switches[i]=NULL; 
+
+    // printf("init_switches complete\n"); // for debugging
+}
+
+// Clear evaluation array for all 
+void clear_switches() {
+
+	for (int i = 0; i < MAX_SWITCH_NUM; i++){
+        // memory free
+		free(switches[i]);  
+		switches[i]=NULL;
+	}
 }
 
 
@@ -126,6 +147,7 @@ void init_JQ () {
     int i;
     for (i = 0; i < MAX_PROCESS_NUM; i++)
         jobQueue[i] = NULL;
+    // printf("init_JQ complete\n"); // for debugging
 }
 
 
@@ -220,6 +242,20 @@ void clear_JQ() {
 }
 
 
+// for debug (check if the process is generated properly)
+void print_JQ() { 
+
+	printf("[ Job Queue (total # of process: %d) ]\n", cur_proc_num_JQ);
+	printf("pid\t\tpriority\t\tarrival_time\t\tCPU burst\t\tIO burst\n");
+	printf("=============================================================================================\n");
+    for(int i = 0; i < cur_proc_num_JQ; i++) {
+        printf("%3d\t\t%8d\t\t%12d\t\t%9d\t\t%8d\n", jobQueue[i]->pid, jobQueue[i]->priority, jobQueue[i]->arrivalTime, jobQueue[i]->CPUburst, jobQueue[i]->IOburst);   
+    }
+    printf("=============================================================================================\n\n\n");
+}
+
+
+
 // Clone job queue (Copy from job queue to clone)
 processPointer cloneJobQueue[MAX_PROCESS_NUM];
 int cur_proc_num_clone_JQ = 0;
@@ -274,6 +310,7 @@ void loadClone_JQ() {
 	}
 	
 	cur_proc_num_JQ = cur_proc_num_clone_JQ;
+    // print_JQ(); // for debugging
 }
 
 
@@ -286,9 +323,9 @@ void clearClone_JQ() {
 }
 
 
-// Current running process
+// Current running process (Global Variable)
 processPointer runningProcess = NULL;
-// Time consumed so far (연구 필요)
+// Time consumed so far 
 int timeConsumed = 0;
 
 
@@ -300,6 +337,7 @@ void init_RQ () {
     cur_proc_num_RQ = 0;
     for (int i = 0; i < MAX_PROCESS_NUM; i++)
         readyQueue[i] = NULL;
+    // printf("init_RQ complete\n"); // for debugging
 }
 
 
@@ -376,6 +414,7 @@ void init_WQ () {
 	cur_proc_num_WQ = 0;
     for (int i = 0; i < MAX_PROCESS_NUM; i++)
         waitingQueue[i] = NULL;
+    // printf("init_WQ complete\n"); // for debugging
 }
 
 
@@ -454,6 +493,7 @@ void init_T () {
 	cur_proc_num_T = 0;
     for (int i = 0; i < MAX_PROCESS_NUM; i++)
         terminated[i] = NULL;
+    // printf("init_T complete\n"); // for debugging
 }
 
 
@@ -733,14 +773,14 @@ processPointer schedule(int alg, int preemptive, int time_quantum) {
 }
 
 
-// Simulate with loop (amount: time passed by)
-void simulate(int amount, int alg, int preemptive, int time_quantum) { 
+// Simulate with loop (amount: time passed by, 0 - 120(setting in main function))
+void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# modified)
 
 	processPointer tempProcess = NULL;
 	
 	for (int i = 0; i < cur_proc_num_JQ; i++) {
 
-        // when the amount of time gets to the arrival time of a process
+        // (ready queue update) when the amount of time gets to the arrival time of a process
 		if (jobQueue[i]->arrivalTime == amount) { 
 			tempProcess = removeFrom_JQ(jobQueue[i--]);
 			insertInto_RQ(tempProcess);
@@ -750,11 +790,22 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) {
 	processPointer prevProcess = runningProcess;
     // pick up the process that will be executed in this turn (return selected process)
 	runningProcess = schedule(alg, preemptive, time_quantum); 
-	
-	printf("%d: ", amount);
 
-    // Process switch (간트차트 그리기 위해 수정 필요)
+
+	// (temp#) printf("current time(amount) : %d\n", amount); 
+
+    // Process switch 
 	if (prevProcess != runningProcess) {
+
+        // memory allocation to switching array 
+        switchPointer newSwitch = (switchPointer)malloc(sizeof(struct switching));
+    
+        newSwitch->new_pid =  runningProcess->pid;
+        newSwitch->switching_time = amount;
+        // switch information update
+        switches[cur_switch_num++] = newSwitch; // 반복저장되면 안되고 그래서 초기화를 
+
+        // (temp#) printf("\n#### process switch #####\n");
 
         // initiate the running time of current process (becasue of switching)
 		timeConsumed = 0; 
@@ -762,9 +813,10 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) {
         // Update responseTime of new running process
 		if (runningProcess->responseTime == -1) { 
 			runningProcess->responseTime = amount - runningProcess->arrivalTime;
+            // if it does response first, then current time - arrival time 
 		}
 	}
-	
+
     // Process in ready queue are waiting for CPU
     for (int i = 0; i < cur_proc_num_RQ; i++) { 
         
@@ -783,25 +835,25 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) {
 			
             // IO completed
 			if (waitingQueue[i]->IOremainingTime <= 0 ) {
-				printf("(pid: %d) -> IO completed\n", waitingQueue[i]->pid); 
+				// (temp#) printf("(pid: %d) -> IO completed\n", waitingQueue[i]->pid); 
                 // Turn that process back to the ready queue
 				insertInto_RQ(removeFrom_WQ(waitingQueue[i--]));
 			}
 		}
 	}
-	
+
     // If there is a running process
     if (runningProcess != NULL) {  
         runningProcess->CPUremainingTime--;
         runningProcess->turnaroundTime++;
         timeConsumed++;
-        printf("(pid: %d) -> running",runningProcess->pid);
+        // (temp#) printf("(pid: %d) -> running ", runningProcess->pid);
         
         // If the process is 'completed', send it to terminated queue
         if (runningProcess->CPUremainingTime <= 0) { 
 			insertInto_T(runningProcess);
 			runningProcess = NULL;
-			printf("-> terminated");
+			// (temp#) printf("-> terminated");
 		} 
         // Not yet completed 
         else { 
@@ -809,16 +861,25 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) {
 			if (runningProcess->IOremainingTime > 0) {  
 				insertInto_WQ(runningProcess);
 				runningProcess = NULL;
-				printf("-> IO request");	
+				// (temp#) printf("-> IO request");	
 			}
 		}
 		
-        printf("\n");
+        // (temp#) printf("\n");
     } 
     
     // If there is NO ruuning process
     else { 
-        printf("idle\n");
+        if (amount == 0){
+            // memory allocation to switching array 
+            switchPointer newSwitch = (switchPointer)malloc(sizeof(struct switching));
+
+            newSwitch->new_pid = 0; // convert (later) when printing gantt chart
+            newSwitch->switching_time = amount; 
+            // switch information update
+            switches[cur_switch_num++] = newSwitch; 
+        }
+        // (temp#) printf("idle");
     	computation_idle++;
 	}
 }
@@ -832,8 +893,8 @@ void analyze(int alg, int preemptive) {
 	processPointer p = NULL;
 	
     // print analyzing result
-	printf("===========================================================");
-    for (int i=0; i<cur_proc_num_T; i++){
+	printf("==================================================================\n");
+    for (int i = 0; i < cur_proc_num_T; i++){
 		p = terminated[i];
 		printf("(pid: %d)\n",p->pid);
 		printf("waiting time = %d, ",p->waitingTime);
@@ -841,7 +902,7 @@ void analyze(int alg, int preemptive) {
 		printf("CPU remaining time = %d\n",p->CPUremainingTime); // for debug (delete later)
 		printf("IO remaining time = %d\n",p->IOremainingTime);   // for debug (delete later)
 		printf("response time = %d\n",p->responseTime);
-		printf("===========================================================");
+		printf("==================================================================\n");
 
 		wait_sum += p->waitingTime;
 		turnaround_sum += p->turnaroundTime;
@@ -873,7 +934,69 @@ void analyze(int alg, int preemptive) {
 		newEval->completed = cur_proc_num_T;
 		evals[cur_eval_num++] = newEval;
 	}
-	printf("===========================================================");
+	printf("==================================================================\n\n\n\n");
+}
+
+// print Gantt Chart
+void ganttChart(int alg, int preemptive, int terminate_time){
+	
+    // upper bar
+    for (int i = 0; i < terminate_time; i++){
+        printf("--");
+    }
+    printf(" \n");
+
+    // process name
+    for (int i = 0; i < terminate_time; i++){ // i: time, j: switch sequence
+
+        int found = FALSE;
+        for (int j = 0; j < cur_switch_num; j++){ 
+            if (switches[j]->switching_time > i) break;
+            if (switches[j]->switching_time == i){ 
+                found = TRUE;
+                if (switches[j]->new_pid == 0)
+                    printf("|idle");
+                else 
+                    printf("|P(%d)", switches[j]->new_pid);
+            }
+        }
+
+        if (!found)
+            printf(" ");    
+    }
+
+    printf("|\n");
+
+    // lower bar
+    for (int i = 0; i < terminate_time; i++){
+        printf("--");
+    }
+    printf("\n");
+
+    // process time (switching checkpoint)
+    for (int i = 0; i < terminate_time; i++){ // i: time, j: switch sequence
+        
+        int found = FALSE;
+        for (int j = 0; j < cur_switch_num; j++){ 
+            if (switches[j]->switching_time > i) break;
+            if (switches[j]->switching_time == i){ 
+                found = TRUE;
+                if (switches[j]->new_pid == 0)
+                    printf("%d    ", switches[j]->switching_time);
+                else {
+                    if (switches[j]->switching_time > 9)
+                        printf("%d     ", switches[j]->switching_time);
+                    else printf("%d      ", switches[j]->switching_time);
+                    }
+
+            }
+        }
+        if (!found)
+            printf(" "); 
+    }
+    
+    // terminate time
+    printf("%d\n\n\n", terminate_time);
 }
 
 
@@ -882,23 +1005,26 @@ void startSimulation(int alg, int preemptive, int time_quantum, int count) {
 	
     // load clone to job queue
     loadClone_JQ();
+    // switch init
+    cur_switch_num = 0;
+    init_switches();
 
 	switch(alg) {
         case FCFS:
-            printf("<FCFS Algorithm>");
+            printf("[ FCFS Algorithm ]\n\n");
             break;
         case SJF:
-        	if (preemptive) printf("<Preemptive ");
-        	else printf("<Non-preemptive ");
-        	printf("SJF Algorithm>");
+        	if (preemptive) printf("[ Preemptive ");
+        	else printf("[ Non-preemptive ");
+        	printf("SJF Algorithm ]\n\n");
         	break;
         case RR:
-        	printf("<Round Robin Algorithm (time quantum: %d)>\n",time_quantum);
+        	printf("[ Round Robin Algorithm (time quantum: %d) ]\n\n",time_quantum);
         	break;
         case PRIORITY:
-        	if(preemptive) printf("<Preemptive ");
-        	else printf("<Non-preemptive ");
-        	printf("Priority Algorithm>");
+        	if(preemptive) printf("[ Preemptive ");
+        	else printf("[ Non-preemptive ");
+        	printf("Priority Algorithm ]\n\n");
         	break;
         default:
         return;
@@ -924,21 +1050,27 @@ void startSimulation(int alg, int preemptive, int time_quantum, int count) {
 	computation_idle = 0;
 
     // Repeat simulation in count time (DYNAMIC effect like time passes)
-	for (i=0; i < count; i++) {
-		simulate(i,alg, preemptive, TIME_QUANTUM);
+	for (i = 0; i < count; i++) {
+		simulate(i, alg, preemptive, TIME_QUANTUM); // (# modified)
+        // all process terminate 
 		if (cur_proc_num_T == initial_proc_num) {
 			i++;
 			break;
 		}
 	}
 	computation_end = i-1;
-	
-	analyize(alg, preemptive);
+
+
+    ganttChart(alg, preemptive, i);
+    analyze(alg, preemptive);
+
 	clear_JQ();
     clear_RQ();
     clear_T();
     clear_WQ();
+    clear_switches();
     free(runningProcess);
+    // free(newSwitch);
     runningProcess = NULL;
     timeConsumed = 0;
     computation_start = 0;
@@ -947,13 +1079,14 @@ void startSimulation(int alg, int preemptive, int time_quantum, int count) {
 }
 
 
+
 void evaluate() {
 	
-	printf("\n                       <Evaluation>                    \n");
+	printf("\n\n[ Total Evaluation ]\n\n");
 	
     for(int i=0; i < cur_eval_num; i++) {
 		
-		printf("===========================================================");
+		printf("==================================================================\n");
 		
 		int alg = evals[i]->alg;
 		int preemptive = evals[i]->preemptive;
@@ -961,43 +1094,43 @@ void evaluate() {
 		switch (evals[i]->alg) {
 		
 		case FCFS:
-            printf("<FCFS Algorithm>");
+            printf("(1) FCFS Algorithm\n");
             break;
         case SJF:
-        	if(preemptive) printf("<Preemptive ");
-        	else printf("<Non-preemptive ");
-        	printf("SJF Algorithm>");
+        	if(preemptive) printf("(3) Preemptive ");
+        	else printf("(2) Non-preemptive ");
+        	printf("SJF Algorithm\n");
         	break;
         case RR:
-        	printf("<Round Robin Algorithm>");
+        	printf("(4) Round Robin Algorithm\n");
         	break;
         case PRIORITY:
-        	if(preemptive) printf("<Preemptive ");
-        	else printf("<Non-preemptive ");
-        	printf("Priority Algorithm>");
+        	if(preemptive) printf("(6) Preemptive ");
+        	else printf("(5) Non-preemptive ");
+        	printf("Priority Algorithm\n");
         	break;
         default:
+
         return;
 		}
 
-		printf ("-----------------------------------------------------------");
 		printf("start time: %d / end time: %d / CPU utilization : %.2lf%% \n",evals[i]->startTime,evals[i]->endTime,evals[i]->CPU_util);
 		printf("Average waiting time: %d\n",evals[i]->avg_waitingTime);
 		printf("Average turnaround time: %d\n",evals[i]->avg_turnaroundTime);
 		printf("Average response time: %d\n",evals[i]->avg_responseTime);
 		printf("Completed: %d\n",evals[i]->completed);
-	}
-	
-	printf("===========================================================");
+    }	
+	printf("==================================================================\n\n");
 }
 
 
 // Set total process number and total IO event number
 void createProcesses(int total_num, int io_num) {
-	if (io_num > total_num) {
+	
+    /* if (io_num > total_num) {
 		printf("<ERROR> The number of IO event cannot be higher than the number of processes");
 		exit(-1);
-	}
+	} */
 	
     // for random number generation
 	srand(time(NULL)); 
@@ -1006,8 +1139,8 @@ void createProcesses(int total_num, int io_num) {
 		// CPU burst limit: 5-20
 		// IO burst limit: 1-10
         // refer to createProcess(int pid, int priority, int arrivalTime, int CPUburst, int IOburst)
-		createProcess(rand() % 9000 + 1000, rand() % total_num + 1, rand() % (total_num + 10), rand() % 16 + 5, 0);
-	}
+		createProcess(rand() % 900 + 100, rand() % total_num + 1, rand() % (total_num + 10), rand() % 16 + 5, 0);
+	} // including inserting into job queue
 	
     // Which process incurs IO event? (random designation)
 	for (int i = 0; i <io_num; i++) {
@@ -1021,15 +1154,12 @@ void createProcesses(int total_num, int io_num) {
 			jobQueue[randomIdx]->IOremainingTime = randomIOburst;
 		
 		} 
-
         // Choose another process (that ith process already be chosen to incur IO event)
         else 
 		    i--;
 	}
-
 	sort_JQ();
 	clone_JQ(); //backup this JQ
-	print_JQ();
 }
 
 
@@ -1049,20 +1179,26 @@ void main() {
     while (totalProcessNum < 3) {
         totalProcessNum = rand() % MAX_PROCESS_NUM + 1;
         // IO process number should be smaller than total process number.
-        totalIOProcessNum = rand() % totalProcessNum +1;
+        totalIOProcessNum = rand() % totalProcessNum;
     }
+
+    // for debug
+    printf("[ Creating Process ]\n");
+    printf("Total # of process: %d\n", totalProcessNum);
+    printf("Total # of process with IO: %d\n\n\n", totalIOProcessNum);
 
     // Create process with above information
     createProcesses(totalProcessNum, totalIOProcessNum);
-    
+    print_JQ();
+
     // time limit 
-    int amount = 120;
- 	startSimulation(FCFS,FALSE,TIME_QUANTUM, amount);     // FCFS - default: non-preemptive
+    int amount = 150;
+ 	startSimulation(FCFS,FALSE,TIME_QUANTUM, amount); // FCFS - default: non-preemptive
     startSimulation(SJF,FALSE,TIME_QUANTUM, amount);
     startSimulation(SJF,TRUE,TIME_QUANTUM, amount);
+	startSimulation(RR,TRUE,TIME_QUANTUM, amount);
 	startSimulation(PRIORITY,FALSE,TIME_QUANTUM, amount);
 	startSimulation(PRIORITY,TRUE,TIME_QUANTUM, amount);
-	startSimulation(RR,TRUE,TIME_QUANTUM, amount);
 	
     evaluate();
 

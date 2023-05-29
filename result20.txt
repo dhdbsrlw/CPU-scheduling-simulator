@@ -1,0 +1,451 @@
+[ Creating Process ]
+Total # of process: 9
+Total # of process with IO: 3
+
+
+[ Job Queue (total # of process: 9) ]
+pid		priority		arrival_time		CPU burst		IO burst
+=============================================================================================
+146		       1		           1		       11		       6
+348		       4		           0		       11		       0
+381		       8		          17		       18		       0
+454		       4		          16		       13		       0
+653		       9		           3		        8		       3
+673		       9		          15		       17		       0
+679		       5		           2		       11		       5
+764		       1		           6		       17		       0
+935		       3		           7		       16		       0
+=============================================================================================
+
+
+[ FCFS Algorithm ]
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348)          |P(146)|P(679)|P(653)|P(764)                |P(935)               |P(673)                |P(454)            |P(653)      |P(381)                 |P(146)         |P(679)         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0                11     12     13     14                     31                    47                     64                 77           84                      102              112              122
+
+
+==================================================================
+(pid: 348)
+waiting time = 0, turnaround time = 11, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 764)
+waiting time = 8, turnaround time = 25, CPU remaining time = 0
+IO remaining time = 0
+response time = 8
+==================================================================
+(pid: 935)
+waiting time = 24, turnaround time = 40, CPU remaining time = 0
+IO remaining time = 0
+response time = 24
+==================================================================
+(pid: 673)
+waiting time = 32, turnaround time = 49, CPU remaining time = 0
+IO remaining time = 0
+response time = 32
+==================================================================
+(pid: 454)
+waiting time = 48, turnaround time = 61, CPU remaining time = 0
+IO remaining time = 0
+response time = 48
+==================================================================
+(pid: 653)
+waiting time = 70, turnaround time = 81, CPU remaining time = 0
+IO remaining time = 0
+response time = 10
+==================================================================
+(pid: 381)
+waiting time = 67, turnaround time = 85, CPU remaining time = 0
+IO remaining time = 0
+response time = 67
+==================================================================
+(pid: 146)
+waiting time = 94, turnaround time = 111, CPU remaining time = 0
+IO remaining time = 0
+response time = 10
+==================================================================
+(pid: 679)
+waiting time = 104, turnaround time = 120, CPU remaining time = 0
+IO remaining time = 0
+response time = 10
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 49
+Average turnaround time: 64
+Average response time: 23
+Number of completed process: 9
+==================================================================
+
+
+
+[ Non-preemptive SJF Algorithm ]
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348)          |P(653)|P(146)|P(679)|P(935)               |P(653)      |P(146)         |P(679)         |P(454)            |P(764)                |P(673)                |P(381)                 |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0                11     12     13     14                    30           37              47              57                 70                     87                     104                      122
+
+
+==================================================================
+(pid: 348)
+waiting time = 0, turnaround time = 11, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 935)
+waiting time = 7, turnaround time = 23, CPU remaining time = 0
+IO remaining time = 0
+response time = 7
+==================================================================
+(pid: 653)
+waiting time = 23, turnaround time = 34, CPU remaining time = 0
+IO remaining time = 0
+response time = 8
+==================================================================
+(pid: 146)
+waiting time = 29, turnaround time = 46, CPU remaining time = 0
+IO remaining time = 0
+response time = 11
+==================================================================
+(pid: 679)
+waiting time = 39, turnaround time = 55, CPU remaining time = 0
+IO remaining time = 0
+response time = 11
+==================================================================
+(pid: 454)
+waiting time = 41, turnaround time = 54, CPU remaining time = 0
+IO remaining time = 0
+response time = 41
+==================================================================
+(pid: 764)
+waiting time = 64, turnaround time = 81, CPU remaining time = 0
+IO remaining time = 0
+response time = 64
+==================================================================
+(pid: 673)
+waiting time = 72, turnaround time = 89, CPU remaining time = 0
+IO remaining time = 0
+response time = 72
+==================================================================
+(pid: 381)
+waiting time = 87, turnaround time = 105, CPU remaining time = 0
+IO remaining time = 0
+response time = 87
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 40
+Average turnaround time: 55
+Average response time: 33
+Number of completed process: 9
+==================================================================
+
+
+
+[ Preemptive SJF Algorithm ]
+
+preemption is detected.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348)          |P(653)|P(146)|P(679)|P(935)|P(653)      |P(146)         |P(679)         |P(454)            |P(935)              |P(764)                |P(673)                |P(381)                 |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0                11     12     13     14     15           22              32              42                 55                   70                     87                     104                      122
+
+
+==================================================================
+(pid: 348)
+waiting time = 0, turnaround time = 11, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 653)
+waiting time = 8, turnaround time = 19, CPU remaining time = 0
+IO remaining time = 0
+response time = 8
+==================================================================
+(pid: 146)
+waiting time = 14, turnaround time = 31, CPU remaining time = 0
+IO remaining time = 0
+response time = 11
+==================================================================
+(pid: 679)
+waiting time = 24, turnaround time = 40, CPU remaining time = 0
+IO remaining time = 0
+response time = 11
+==================================================================
+(pid: 454)
+waiting time = 26, turnaround time = 39, CPU remaining time = 0
+IO remaining time = 0
+response time = 26
+==================================================================
+(pid: 935)
+waiting time = 47, turnaround time = 63, CPU remaining time = 0
+IO remaining time = 0
+response time = 7
+==================================================================
+(pid: 764)
+waiting time = 64, turnaround time = 81, CPU remaining time = 0
+IO remaining time = 0
+response time = 64
+==================================================================
+(pid: 673)
+waiting time = 72, turnaround time = 89, CPU remaining time = 0
+IO remaining time = 0
+response time = 72
+==================================================================
+(pid: 381)
+waiting time = 87, turnaround time = 105, CPU remaining time = 0
+IO remaining time = 0
+response time = 87
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 38
+Average turnaround time: 53
+Average response time: 31
+Number of completed process: 9
+==================================================================
+
+
+
+[ Round Robin Algorithm (time quantum: 2) ]
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348) |P(146)|P(679)|P(348) |P(653)|P(764) |P(348) |P(935) |P(146) |P(679) |P(764) |P(653) |P(348) |P(935) |P(673) |P(146) |P(454) |P(381) |P(679) |P(764) |P(653) |P(348) |P(935) |P(673) |P(146) |P(454) |P(381) |P(679) |P(764) |P(653) |P(348)|P(935) |P(673) |P(146) |P(454) |P(381) |P(679) |P(764) |P(653)|P(935) |P(673) |P(146) |P(454) |P(381) |P(679) |P(764) |P(935) |P(673) |P(454) |P(381) |P(764) |P(935) |P(673) |P(454) |P(381) |P(764) |P(935) |P(673) |P(454)|P(381) |P(764)|P(673) |P(381) |P(673)|P(381) |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0       2      3      4       6      7       9       11      13      15      17      19      21      23      25      27      29      31      33      35      37      39      41      43      45      47      49      51      53      55      57     58      60      62      64      66      68      70      72     73      75      77      79      81      83      85      87      89      91      93      95      97      99      101      103      105      107      109      111     112      114     115      117      119     120      122
+
+
+==================================================================
+(pid: 348)
+waiting time = 47, turnaround time = 58, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 653)
+waiting time = 59, turnaround time = 70, CPU remaining time = 0
+IO remaining time = 0
+response time = 3
+==================================================================
+(pid: 146)
+waiting time = 61, turnaround time = 78, CPU remaining time = 0
+IO remaining time = 0
+response time = 1
+==================================================================
+(pid: 679)
+waiting time = 67, turnaround time = 83, CPU remaining time = 0
+IO remaining time = 0
+response time = 1
+==================================================================
+(pid: 935)
+waiting time = 86, turnaround time = 102, CPU remaining time = 0
+IO remaining time = 0
+response time = 4
+==================================================================
+(pid: 454)
+waiting time = 83, turnaround time = 96, CPU remaining time = 0
+IO remaining time = 0
+response time = 13
+==================================================================
+(pid: 764)
+waiting time = 92, turnaround time = 109, CPU remaining time = 0
+IO remaining time = 0
+response time = 1
+==================================================================
+(pid: 673)
+waiting time = 88, turnaround time = 105, CPU remaining time = 0
+IO remaining time = 0
+response time = 10
+==================================================================
+(pid: 381)
+waiting time = 87, turnaround time = 105, CPU remaining time = 0
+IO remaining time = 0
+response time = 14
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 74
+Average turnaround time: 89
+Average response time: 5
+Number of completed process: 9
+==================================================================
+
+
+
+[ Non-preemptive Priority Algorithm ]
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348)          |P(146)|P(764)                |P(146)         |P(935)               |P(454)            |P(679)|P(381)                 |P(679)         |P(653)|P(673)                |P(653)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0                11     12                     29              39                    55                 68     69                      87              97     98                     115           122
+
+
+==================================================================
+(pid: 348)
+waiting time = 0, turnaround time = 11, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 764)
+waiting time = 6, turnaround time = 23, CPU remaining time = 0
+IO remaining time = 0
+response time = 6
+==================================================================
+(pid: 146)
+waiting time = 21, turnaround time = 38, CPU remaining time = 0
+IO remaining time = 0
+response time = 10
+==================================================================
+(pid: 935)
+waiting time = 32, turnaround time = 48, CPU remaining time = 0
+IO remaining time = 0
+response time = 32
+==================================================================
+(pid: 454)
+waiting time = 39, turnaround time = 52, CPU remaining time = 0
+IO remaining time = 0
+response time = 39
+==================================================================
+(pid: 381)
+waiting time = 52, turnaround time = 70, CPU remaining time = 0
+IO remaining time = 0
+response time = 52
+==================================================================
+(pid: 679)
+waiting time = 79, turnaround time = 95, CPU remaining time = 0
+IO remaining time = 0
+response time = 66
+==================================================================
+(pid: 673)
+waiting time = 83, turnaround time = 100, CPU remaining time = 0
+IO remaining time = 0
+response time = 83
+==================================================================
+(pid: 653)
+waiting time = 108, turnaround time = 119, CPU remaining time = 0
+IO remaining time = 0
+response time = 94
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 46
+Average turnaround time: 61
+Average response time: 42
+Number of completed process: 9
+==================================================================
+
+
+
+[ Preemptive Priority Algorithm ]
+
+preemption is detected.
+preemption is detected.
+preemption is detected.
+preemption is detected.
+preemption is detected.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+|P(348)|P(146)|P(348)   |P(764) |P(146)         |P(764)              |P(935)               |P(348)     |P(454)            |P(679)|P(381)    |P(679)         |P(381)            |P(653)|P(673)  |P(653)      |P(673)             |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+0      1      2         6       8               18                   33                    49          55                 68     69         74              84                 97     98       101           108                  122
+
+
+==================================================================
+(pid: 146)
+waiting time = 0, turnaround time = 17, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 764)
+waiting time = 10, turnaround time = 27, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 935)
+waiting time = 26, turnaround time = 42, CPU remaining time = 0
+IO remaining time = 0
+response time = 26
+==================================================================
+(pid: 348)
+waiting time = 44, turnaround time = 55, CPU remaining time = 0
+IO remaining time = 0
+response time = 0
+==================================================================
+(pid: 454)
+waiting time = 39, turnaround time = 52, CPU remaining time = 0
+IO remaining time = 0
+response time = 39
+==================================================================
+(pid: 679)
+waiting time = 66, turnaround time = 82, CPU remaining time = 0
+IO remaining time = 0
+response time = 66
+==================================================================
+(pid: 381)
+waiting time = 62, turnaround time = 80, CPU remaining time = 0
+IO remaining time = 0
+response time = 52
+==================================================================
+(pid: 653)
+waiting time = 94, turnaround time = 105, CPU remaining time = 0
+IO remaining time = 0
+response time = 94
+==================================================================
+(pid: 673)
+waiting time = 90, turnaround time = 107, CPU remaining time = 0
+IO remaining time = 0
+response time = 83
+==================================================================
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 47
+Average turnaround time: 63
+Average response time: 40
+Number of completed process: 9
+==================================================================
+
+
+
+
+
+[ Total Evaluation ]
+==================================================================
+(1) FCFS Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 49
+Average turnaround time: 64
+Average response time: 23
+Completed: 9
+==================================================================
+(3) Non-preemptive SJF Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 40
+Average turnaround time: 55
+Average response time: 33
+Completed: 9
+==================================================================
+(2) Preemptive SJF Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 38
+Average turnaround time: 53
+Average response time: 31
+Completed: 9
+==================================================================
+(4) Round Robin Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 74
+Average turnaround time: 89
+Average response time: 5
+Completed: 9
+==================================================================
+(6) Non-preemptive Priority Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 46
+Average turnaround time: 61
+Average response time: 42
+Completed: 9
+==================================================================
+(5) Preemptive Priority Algorithm
+start time: 0 / end time: 121 / CPU utilization : 100.00% 
+Average waiting time: 47
+Average turnaround time: 63
+Average response time: 40
+Completed: 9
+==================================================================
+
