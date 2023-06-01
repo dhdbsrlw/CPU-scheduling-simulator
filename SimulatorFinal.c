@@ -3,11 +3,12 @@
  * CPU Scheduling Simulator                    *
  *                                             *
  * Worked by 2020120036 경영학과 오윤진         *
- * Last update: 23/05/28                       *
+ * Last update: 23/05/30                       *
  *                                             *
  *                                             *
 ***********************************************/
-// 추가적인 함수 (extra credit) 구현, 코드 정리
+// 추가적인 함수 구현 - (Preemptive Priority ALG - Aging 함수 구현)
+
 
 // Header declaration
 #include <stdio.h>
@@ -15,18 +16,19 @@
 #include <time.h>
 
 // Policy (arbitrary number)
-#define MAX_TIME_UNIT 1000         // 삭제 가능
+#define MAX_TIME_UNIT 1000         
 #define MAX_PROCESS_NUM 10
-#define MAX_ALGORITHM_NUM 10       // 삭제 가능
+#define MAX_ALGORITHM_NUM 10       
 #define MAX_SWITCH_NUM 150 
-#define TIME_QUANTUM 2
+#define TIME_QUANTUM 4
+#define AGING_PERIOD 20 
 
-// Algorithm's Unique Number
+// Algorithm's Unique Index
 #define FCFS 0
 #define SJF 1
 #define PRIORITY 2
 #define RR 3
-#define P_SJF 4    // Preemptive SJF
+#define P_SJF 4         // Preemptive SJF
 #define P_PRIORITY 5    // Preemptive PRIORITY
 
 #define TRUE 1
@@ -50,6 +52,7 @@ typedef struct process {
 } process;
 typedef struct process* processPointer;
 
+
 int computation_start = 0;
 int computation_end = 0;
 int computation_idle = 0;
@@ -70,6 +73,7 @@ typedef struct evaluation {
 
 }evaluation;
 typedef struct evaluation* evalPointer; 
+
 
 // Evaluation array
 evalPointer evals[MAX_ALGORITHM_NUM]; 
@@ -111,7 +115,6 @@ typedef struct switching* switchPointer;
 
 // Switching Info array
 switchPointer switches[MAX_SWITCH_NUM]; // per each algorithm
-// switchPointer* switches_all[MAX_ALGORITHM_NUM]; // all algorithm
 
 int cur_switch_num = 0;
 
@@ -554,7 +557,7 @@ processPointer createProcess(int pid, int priority, int arrivalTime, int CPUburs
 /* Choose next process according to the specific algorithm - return next processPointer */
 
 
-// FCFS - parameter # 0
+// FCFS - idx 0
 processPointer FCFS_alg() { 
         
         // find first-arrive process in ready queue (Assume that ready queue is sorted by arrival time.)
@@ -575,7 +578,7 @@ processPointer FCFS_alg() {
 }
 
 
-// SJF - parameter # 1
+// SJF - idx 1
 processPointer SJF_alg(int preemptive) {
 	
     // Just start from 0 (cannot sure that first process has the shortest burst time)
@@ -610,7 +613,7 @@ processPointer SJF_alg(int preemptive) {
 
 					// Switch
 					if (runningProcess->CPUremainingTime > shortestJob->CPUremainingTime) {
-						printf("preemption is detected.\n");
+						// printf("preemption is detected.\n");
 						insertInto_RQ(runningProcess); // Insert running process into ready queue 
 						return removeFrom_RQ(shortestJob); // Bring shortest job(process) from ready queue
 					}
@@ -621,7 +624,7 @@ processPointer SJF_alg(int preemptive) {
                         if (runningProcess->arrivalTime <= shortestJob->arrivalTime)
                             return runningProcess;
                         else {
-                            printf("preemption is detected.\n");
+                            // printf("preemption is detected.\n");
 						    insertInto_RQ(runningProcess); // Insert running process into ready queue 
 						    return removeFrom_RQ(shortestJob); // Bring shortest job(process) from ready queue
                         }
@@ -646,9 +649,17 @@ processPointer SJF_alg(int preemptive) {
 }
 
 
-// PRIORITY - parameter # 2
-processPointer PRIORITY_alg(int preemptive) {
+// PRIORITY - idx 2
+processPointer PRIORITY_alg(int amount, int preemptive) {
 	
+    // Implement aging function 
+    for (int i = 0; i < cur_proc_num_RQ; i++) {
+
+        if (readyQueue[i]->priority != 1) 
+            // priority upgrade
+            readyQueue[i]->priority -= (amount - readyQueue[i]->arrivalTime) / AGING_PERIOD;
+    }
+
     // Just start from 0
 	processPointer importantJob = readyQueue[0]; 
 	
@@ -681,7 +692,7 @@ processPointer PRIORITY_alg(int preemptive) {
 				
                     // Switch
 					if (runningProcess->priority > importantJob->priority) {
-						printf("preemption is detected.\n");
+						// printf("preemption is detected.\n");
 						insertInto_RQ(runningProcess);
 						return removeFrom_RQ(importantJob);
 					}
@@ -692,7 +703,7 @@ processPointer PRIORITY_alg(int preemptive) {
                         if (runningProcess->arrivalTime <= importantJob->arrivalTime)
                             return runningProcess;
                         else {
-                            printf("preemption is detected.\n");
+                            // printf("preemption is detected.\n");
 						    insertInto_RQ(runningProcess);
 						    return removeFrom_RQ(importantJob);
                         }
@@ -719,19 +730,19 @@ processPointer PRIORITY_alg(int preemptive) {
 }
 
 
-// RR - parameter # 3
+// RR - idx 3
 processPointer RR_alg(int time_quantum){
     
-    // find first-arrive process in ready queue (Assume that ready queue is sorted by arrival time.)
+    // find first-arriving process in ready queue (Assume that ready queue is sorted by arrival time.)
 	processPointer earliestProc = readyQueue[0]; 
         
     if (earliestProc != NULL){
             
         if (runningProcess != NULL) { 
-			// Existing running process - time expired (수정 필요)
-	    	if (timeConsumed >= TIME_QUANTUM){ // timeConsumed: running process' running time until amount
+			// Existing running process - time expired
+	    	if (timeConsumed >= TIME_QUANTUM){ // timeConsumed: running process' running time until the amount (now)
 				insertInto_RQ(runningProcess);
-				return removeFrom_RQ(earliestProc); // 확인 필요
+				return removeFrom_RQ(earliestProc); 
 			} 
             else 
 			    return runningProcess;	
@@ -748,7 +759,7 @@ processPointer RR_alg(int time_quantum){
 
 
 // Execute scheduling algorithm under time limit
-processPointer schedule(int alg, int preemptive, int time_quantum) { 
+processPointer schedule(int amount, int alg, int preemptive, int time_quantum) { 
 	
     processPointer selectedProcess = NULL;
     
@@ -763,7 +774,7 @@ processPointer schedule(int alg, int preemptive, int time_quantum) {
         	selectedProcess = RR_alg(time_quantum);
         	break;
         case PRIORITY:
-        	selectedProcess = PRIORITY_alg(preemptive);
+        	selectedProcess = PRIORITY_alg(amount, preemptive);
         	break;
         default:
         return NULL;
@@ -773,8 +784,8 @@ processPointer schedule(int alg, int preemptive, int time_quantum) {
 }
 
 
-// Simulate with loop (amount: time passed by, 0 - 120(setting in main function))
-void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# modified)
+// Simulate with loop (amount: time passed by, 0 - 150(setting in main function))
+void simulate(int amount, int alg, int preemptive, int time_quantum) { 
 
 	processPointer tempProcess = NULL;
 	
@@ -786,13 +797,10 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# mod
 			insertInto_RQ(tempProcess);
 		}
 	}
-
+    
 	processPointer prevProcess = runningProcess;
     // pick up the process that will be executed in this turn (return selected process)
-	runningProcess = schedule(alg, preemptive, time_quantum); 
-
-
-	// (temp#) printf("current time(amount) : %d\n", amount); 
+	runningProcess = schedule(amount, alg, preemptive, time_quantum); 
 
     // Process switch 
 	if (prevProcess != runningProcess) {
@@ -803,9 +811,7 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# mod
         newSwitch->new_pid =  runningProcess->pid;
         newSwitch->switching_time = amount;
         // switch information update
-        switches[cur_switch_num++] = newSwitch; // 반복저장되면 안되고 그래서 초기화를 
-
-        // (temp#) printf("\n#### process switch #####\n");
+        switches[cur_switch_num++] = newSwitch; 
 
         // initiate the running time of current process (becasue of switching)
 		timeConsumed = 0; 
@@ -835,25 +841,23 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# mod
 			
             // IO completed
 			if (waitingQueue[i]->IOremainingTime <= 0 ) {
-				// (temp#) printf("(pid: %d) -> IO completed\n", waitingQueue[i]->pid); 
                 // Turn that process back to the ready queue
 				insertInto_RQ(removeFrom_WQ(waitingQueue[i--]));
 			}
 		}
 	}
 
-    // If there is a running process
+    // If there is a running process 
     if (runningProcess != NULL) {  
+        // Whether it has IO burst, 1 unit of CPU work first
         runningProcess->CPUremainingTime--;
         runningProcess->turnaroundTime++;
         timeConsumed++;
-        // (temp#) printf("(pid: %d) -> running ", runningProcess->pid);
         
         // If the process is 'completed', send it to terminated queue
         if (runningProcess->CPUremainingTime <= 0) { 
 			insertInto_T(runningProcess);
 			runningProcess = NULL;
-			// (temp#) printf("-> terminated");
 		} 
         // Not yet completed 
         else { 
@@ -861,16 +865,14 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# mod
 			if (runningProcess->IOremainingTime > 0) {  
 				insertInto_WQ(runningProcess);
 				runningProcess = NULL;
-				// (temp#) printf("-> IO request");	
 			}
 		}
 		
-        // (temp#) printf("\n");
     } 
     
     // If there is NO ruuning process
     else { 
-        if (amount == 0){
+        if ((amount == 0) || (prevProcess == runningProcess)){
             // memory allocation to switching array 
             switchPointer newSwitch = (switchPointer)malloc(sizeof(struct switching));
 
@@ -879,7 +881,7 @@ void simulate(int amount, int alg, int preemptive, int time_quantum) { // (# mod
             // switch information update
             switches[cur_switch_num++] = newSwitch; 
         }
-        // (temp#) printf("idle");
+
     	computation_idle++;
 	}
 }
@@ -910,12 +912,12 @@ void analyze(int alg, int preemptive) {
 	}
 
 	printf("start time: %d / end time: %d / CPU utilization : %.2lf%% \n",computation_start, computation_end,
-	 (double)(computation_end - computation_idle)/(computation_end - computation_start)*100);
+	 (double)(computation_end - computation_idle)/(computation_end)*100);
 
 	if (cur_proc_num_T != 0) {
-		printf("Average waiting time: %d\n",wait_sum/cur_proc_num_T);
-		printf("Average turnaround time: %d\n",turnaround_sum/cur_proc_num_T);
-		printf("Average response time: %d\n",response_sum/cur_proc_num_T);
+		printf("Average waiting time: %d\n", wait_sum/cur_proc_num_T);
+		printf("Average turnaround time: %d\n", turnaround_sum/cur_proc_num_T);
+		printf("Average response time: %d\n", response_sum/cur_proc_num_T);
 	}	
 	
     printf("Number of completed process: %d\n",cur_proc_num_T);
@@ -930,21 +932,29 @@ void analyze(int alg, int preemptive) {
 		newEval->avg_waitingTime = wait_sum/cur_proc_num_T;
 		newEval->avg_turnaroundTime = turnaround_sum/cur_proc_num_T;
 		newEval->avg_responseTime = response_sum/cur_proc_num_T;
-		newEval->CPU_util = (double)(computation_end - computation_idle)/(computation_end - computation_start)*100;
+		newEval->CPU_util = (double)(computation_end - computation_idle)/(computation_end)*100;
 		newEval->completed = cur_proc_num_T;
 		evals[cur_eval_num++] = newEval;
 	}
 	printf("==================================================================\n\n\n\n");
 }
 
+
 // print Gantt Chart
 void ganttChart(int alg, int preemptive, int terminate_time){
 	
     // upper bar
-    for (int i = 0; i < terminate_time; i++){
-        printf("--");
+    if ((alg == RR) || (alg == PRIORITY && preemptive == TRUE)) {
+        for (int i = 0; i < terminate_time; i++)
+            printf("---");
     }
+    else {
+        for (int i = 0; i < terminate_time; i++)
+            printf("--");
+        }
+
     printf(" \n");
+
 
     // process name
     for (int i = 0; i < terminate_time; i++){ // i: time, j: switch sequence
@@ -967,11 +977,18 @@ void ganttChart(int alg, int preemptive, int terminate_time){
 
     printf("|\n");
 
+
     // lower bar
-    for (int i = 0; i < terminate_time; i++){
-        printf("--");
+    if ((alg == RR) || (alg == PRIORITY && preemptive == TRUE)) {
+        for (int i = 0; i < terminate_time; i++)
+            printf("---");
+    }
+    else {
+        for (int i = 0; i < terminate_time; i++)
+            printf("--");
     }
     printf("\n");
+
 
     // process time (switching checkpoint)
     for (int i = 0; i < terminate_time; i++){ // i: time, j: switch sequence
@@ -1051,15 +1068,14 @@ void startSimulation(int alg, int preemptive, int time_quantum, int count) {
 
     // Repeat simulation in count time (DYNAMIC effect like time passes)
 	for (i = 0; i < count; i++) {
-		simulate(i, alg, preemptive, TIME_QUANTUM); // (# modified)
+		simulate(i, alg, preemptive, TIME_QUANTUM); 
         // all process terminate 
 		if (cur_proc_num_T == initial_proc_num) {
 			i++;
 			break;
 		}
 	}
-	computation_end = i-1;
-
+	computation_end = i; // revise
 
     ganttChart(alg, preemptive, i);
     analyze(alg, preemptive);
@@ -1070,7 +1086,6 @@ void startSimulation(int alg, int preemptive, int time_quantum, int count) {
     clear_WQ();
     clear_switches();
     free(runningProcess);
-    // free(newSwitch);
     runningProcess = NULL;
     timeConsumed = 0;
     computation_start = 0;
@@ -1127,19 +1142,15 @@ void evaluate() {
 // Set total process number and total IO event number
 void createProcesses(int total_num, int io_num) {
 	
-    /* if (io_num > total_num) {
-		printf("<ERROR> The number of IO event cannot be higher than the number of processes");
-		exit(-1);
-	} */
-	
     // for random number generation
 	srand(time(NULL)); 
 	
 	for (int i = 0; i < total_num; i++) {
+        // pid limit: 100-999
 		// CPU burst limit: 5-20
 		// IO burst limit: 1-10
         // refer to createProcess(int pid, int priority, int arrivalTime, int CPUburst, int IOburst)
-		createProcess(rand() % 900 + 100, rand() % total_num + 1, rand() % (total_num + 10), rand() % 16 + 5, 0);
+		createProcess(rand() % 900 + 100, rand() % total_num + 1, rand() % (total_num + 10), rand() % 16 + 5, 0); 
 	} // including inserting into job queue
 	
     // Which process incurs IO event? (random designation)
@@ -1182,7 +1193,7 @@ void main() {
         totalIOProcessNum = rand() % totalProcessNum;
     }
 
-    // for debug
+    // Process creation info
     printf("[ Creating Process ]\n");
     printf("Total # of process: %d\n", totalProcessNum);
     printf("Total # of process with IO: %d\n\n\n", totalIOProcessNum);
@@ -1191,7 +1202,7 @@ void main() {
     createProcesses(totalProcessNum, totalIOProcessNum);
     print_JQ();
 
-    // time limit 
+    // time limit (1 amount = 1 second)
     int amount = 150;
  	startSimulation(FCFS,FALSE,TIME_QUANTUM, amount); // FCFS - default: non-preemptive
     startSimulation(SJF,FALSE,TIME_QUANTUM, amount);
@@ -1207,6 +1218,5 @@ void main() {
     clear_T();
     clear_WQ();
     clearClone_JQ();
-    
 	clear_evals();
 }
